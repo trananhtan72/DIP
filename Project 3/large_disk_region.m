@@ -24,16 +24,26 @@ for i = 1:5
     snn_img = snn_mean_filter_5x5(snn_img);
 end
 
-set_imgFiltered = {mean_img, median_img, alpha_img, sigma_img, snn_img};
-filter_names = {'Mean', 'Median', 'Alpha-trimmed Mean', 'Sigma', 'Symmetric Nearest-Neighbor'};
+set_imgFiltered = {mean_img, median_img, alpha_img, sigma_img, snn_img, org_img};
+filter_names = {'Mean', 'Median', 'Alpha-trimmed Mean', 'Sigma', 'Symmetric Nearest-Neighbor', 'original Image'};
 
 % Create the mask once (no need to recreate for each filter)
 [rows, cols] = size(org_img);
 [x, y] = meshgrid(1:cols, 1:rows);
-center_x = 95;
-center_y = 115;
-radius = 60;
-disk_mask = ((x - center_x).^2 + (y - center_y).^2) <= radius^2;
+%center_x = 95;
+%center_y = 115;
+%radius = 60;
+
+% Center point
+center_x = 90;
+center_y = 114;
+
+% Semi-circle dimensions
+x_radius = 122/2;
+y_radius = 134/2;
+
+%disk_mask = ((x - center_x).^2 + (y - center_y).^2) <= radius^2;
+disk_mask = ((x - center_x).^2 / x_radius^2 + (y - center_y).^2 / y_radius^2 <= 1);
 
 % Optional: Display the mask to verify
 % Optionally visualize the mask
@@ -43,12 +53,15 @@ title('Original img');
 subplot(1,2,2);imshow(disk_mask);
 title('Disk Region Mask');
 
+figure;
+subplot(1,1,1); imshow(mean_img); title('Mean i=5');
+
 % Print header for results table
 fprintf('%-30s %-15s %-15s\n', 'Filter Type', 'Mean', 'Standard Deviation');
 fprintf('%-30s %-15s %-15s\n', '----------', '----', '------------------');
 
 % Calculate and display statistics for each filter
-for i = 1:5
+for i = 1:6
     filtered_image = set_imgFiltered{i};
     
     % Calculate statistics using the mask
@@ -73,7 +86,7 @@ end
 function [mean] = mean_filter_5x5(f) %from mean3x3.m
     % Get image dimensions
     [M, N] = size(f);
-    
+    mean = zeros(M, N);
     % Convert f to a 16-bit number, so we can do  sums > 255 correctly
     
     g = uint16(f);
@@ -90,10 +103,9 @@ function [mean] = mean_filter_5x5(f) %from mean3x3.m
     
     for x = xlo : xhi        % Don't consider boundary pixels that can't
         for y = ylo : yhi    %    be processed! 
-            mean(x,y) = 0;
             for i = -2 : 2
                 for j = -2 : 2   
-                    mean(x,y) = mean(x,y) + g(x-i,y-j);
+                    mean(x,y) = mean(x,y) + g(x+i,y+j);
                 end
             end
             mean(x,y) = mean(x,y) / 25.;

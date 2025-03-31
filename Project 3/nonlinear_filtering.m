@@ -19,7 +19,9 @@ for i =1:5
     median = median_filter_5x5(median);
     alpha = alpha_trimmed_mean_5x5(alpha,0.25);
     sigma = sigma_filter_5x5(sigma,20);
-    snn = snn_mean_filter_5x5(snn);
+    snn = sigmaFilter5x5(snn,20);
+    
+    %snn = snn_mean_filter_5x5(snn);
 
 
     % Save results at i=1, i=5
@@ -87,7 +89,7 @@ title('SNN');
 function [mean] = mean_filter_5x5(f) %from mean3x3.m
     % Get image dimensions
     [M, N] = size(f);
-    
+    mean = zeros(M, N);
     % Convert f to a 16-bit number, so we can do  sums > 255 correctly
     
     g = uint16(f);
@@ -104,10 +106,9 @@ function [mean] = mean_filter_5x5(f) %from mean3x3.m
     
     for x = xlo : xhi        % Don't consider boundary pixels that can't
         for y = ylo : yhi    %    be processed! 
-            mean(x,y) = 0;
             for i = -2 : 2
                 for j = -2 : 2   
-                    mean(x,y) = mean(x,y) + g(x-i,y-j);
+                    mean(x,y) = mean(x,y) + g(x+i,y+j);
                 end
             end
             mean(x,y) = mean(x,y) / 25.;
@@ -244,4 +245,49 @@ function output = snn_mean_filter_5x5(input_image)
         end
     end
     output = uint8(output);
+end
+
+function [sigma_img] = sigmaFilter5x5(f, sigma)
+% 5×5 Sigma filter implementation
+% Only includes pixels whose values are within σ of the center pixel
+
+[M, N] = size(f);
+sigma_img = zeros(M, N);
+
+% Define the coordinate limits for output pixels
+xlo = 3;
+xhi = M-2;
+ylo = 3;
+yhi = N-2;
+
+% Compute the filtered output image
+for x = xlo:xhi
+    for y = ylo:yhi
+        center_val = double(f(x, y));
+        sum_val = 0;
+        count = 0;
+
+        % Process the 5x5 window
+        for i = -2:2
+            for j = -2:2
+                neighbor_val = double(f(x+i, y+j));
+
+                % Check if the neighbor is within sigma of the center
+                if abs(neighbor_val - center_val) <= 2*sigma
+                    sum_val = sum_val + neighbor_val;
+                    count = count + 1;
+                end
+            end
+        end
+
+        % Compute average of valid neighbors
+        if count > 0
+            sigma_img(x,y) = sum_val / count;
+        else
+            sigma_img(x,y) = center_val;  % If no valid neighbors, use center
+        end
+    end
+end
+
+sigma_img = uint8(sigma_img);
 end
