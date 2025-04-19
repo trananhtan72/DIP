@@ -103,21 +103,21 @@ d9d77_smoothed = applyGaussianSmoothing(d9d77_filtered, sigma_smooth);
 figure;
 subplot(2,3,1); imshow(d9d77); title('Original d9d77');axis on;
 subplot(2,3,2); imshow(d9d77_filtered, []); title('Gabor filtered (m)');axis on;
-subplot(2,3,3); imshow(d9d77_smoothed, []); title('Smoothed (m'')');axis on;
+%subplot(2,3,3); imshow(d9d77_smoothed, []); title('Smoothed (m'')');axis on;
 
 subplot(2,3,5);
 surf(d9d77_filtered, 'EdgeColor', 'none');
 shading interp;
 title('3D plot of m');
 
-subplot(2,3,6);
-surf(d9d77_smoothed, 'EdgeColor', 'none');
-shading interp;
-title('3D plot of m''');
+%subplot(2,3,6);
+%surf(d9d77_smoothed, 'EdgeColor', 'none');
+%shading interp;
+%title('3D plot of m''');
 
 % Threshold for segmentation (adjust as needed)
-thresholdValue = 0.5;
-threshold_d9d77 = segmentImage(d9d77_smoothed, d9d77, thresholdValue);
+thresholdValue = 0.3;
+threshold_d9d77 = segmentImage(d9d77_filtered, d9d77, thresholdValue);
 
 subplot(2,3,4);
 imshow(threshold_d9d77);axis on;
@@ -160,7 +160,7 @@ title('3D plot of m''');
 view(-45, 20);
 
 % Threshold for segmentation (adjust as needed)
-thresholdValue = 0.55;
+thresholdValue = 0.5;
 threshold_d4d29 = segmentImage(d4d29_smoothed, d4d29, thresholdValue);
 
 subplot(2,3,4);
